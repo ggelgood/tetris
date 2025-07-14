@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>賽博punk俄羅斯方塊</title>
+    <title>賽博龐克俄羅斯方塊</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -274,10 +274,155 @@
                 transform: translateY(-60px) scale(0.8);
             }
         }
+        
+        .start-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .start-menu-content {
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ffff;
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 0 40px #00ffff;
+            max-width: 500px;
+        }
+        
+        .game-title {
+            color: #00ffff;
+            font-size: 3.5em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px #00ffff;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        .game-subtitle {
+            color: #ff0080;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            text-shadow: 0 0 15px #ff0080;
+        }
+        
+        .start-btn {
+            background: linear-gradient(45deg, #00ffff, #ff0080);
+            border: none;
+            padding: 20px 40px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #000;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            margin: 10px;
+            min-width: 200px;
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px #00ffff;
+        }
+        
+        .menu-controls {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #00ff41;
+            border-radius: 10px;
+            background: rgba(0, 255, 65, 0.1);
+        }
+        
+        .menu-controls h4 {
+            color: #00ff41;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        
+        .menu-control-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #00ffff;
+        }
+        
+        @keyframes titleGlow {
+            from {
+                text-shadow: 0 0 30px #00ffff;
+            }
+            to {
+                text-shadow: 0 0 50px #00ffff, 0 0 70px #00ffff;
+            }
+        }
+        
+        .game-over-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, #8000ff, #ff00ff);
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #000;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .menu-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #8000ff;
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
+    <div class="start-menu" id="startMenu">
+        <div class="start-menu-content">
+            <h1 class="game-title">TETRIS</h1>
+            <p class="game-subtitle">賽博龐克俄羅斯方塊</p>
+            <button class="start-btn" onclick="startGame()">開始遊戲</button>
+            
+            <div class="menu-controls">
+                <h4>遊戲操作</h4>
+                <div class="menu-control-item">
+                    <span>向左移動</span>
+                    <span class="key">←</span>
+                </div>
+                <div class="menu-control-item">
+                    <span>向右移動</span>
+                    <span class="key">→</span>
+                </div>
+                <div class="menu-control-item">
+                    <span>快速下落</span>
+                    <span class="key">↓</span>
+                </div>
+                <div class="menu-control-item">
+                    <span>旋轉方塊</span>
+                    <span class="key">↑</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer" style="display: none;">
         <div class="game-board neon-glow">
             <canvas id="tetris" width="300" height="600"></canvas>
         </div>
@@ -322,7 +467,10 @@
         <div class="game-over-content">
             <h2>遊戲結束</h2>
             <div class="final-score">最終分數: <span id="finalScore">0</span></div>
-            <button class="restart-btn" onclick="restartGame()">重新開始</button>
+            <div class="game-over-buttons">
+                <button class="restart-btn" onclick="restartGame()">重新開始</button>
+                <button class="menu-btn" onclick="backToMenu()">回到選單</button>
+            </div>
         </div>
     </div>
 
@@ -389,7 +537,8 @@
         // 遊戲狀態
         let board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
         let score = 0;
-        let gameRunning = true;
+        let gameRunning = false;
+        let gameStarted = false;
         let dropTime = 0;
         let dropInterval = 1000;
         
@@ -658,6 +807,40 @@
             updateHistoryDisplay();
         }
         
+        // 開始遊戲
+        function startGame() {
+            document.getElementById('startMenu').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+            
+            // 初始化遊戲狀態
+            board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+            score = 0;
+            scoreElement.textContent = score;
+            gameRunning = true;
+            gameStarted = true;
+            dropTime = performance.now(); // 使用當前時間戳
+            dropInterval = 1000;
+            flashingLines = [];
+            isFlashing = false;
+            
+            currentPiece = getRandomPiece();
+            
+            // 清空畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 開始遊戲循環
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 回到選單
+        function backToMenu() {
+            gameRunning = false;
+            gameStarted = false;
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('startMenu').style.display = 'flex';
+        }
+        
         // 結束遊戲
         function endGame() {
             gameRunning = false;
@@ -680,19 +863,29 @@
         
         // 重新開始遊戲
         function restartGame() {
+            // 重置遊戲狀態
             board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
             score = 0;
             scoreElement.textContent = score;
             gameRunning = true;
-            dropTime = 0;
+            gameStarted = true;
+            dropTime = performance.now(); // 使用當前時間戳
             dropInterval = 1000;
+            flashingLines = [];
+            isFlashing = false;
             currentPiece = getRandomPiece();
             gameOverElement.style.display = 'none';
+            
+            // 清空畫布並重新開始
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 重新開始遊戲循環
+            requestAnimationFrame(gameLoop);
         }
         
         // 鍵盤控制
         document.addEventListener('keydown', (e) => {
-            if (!gameRunning || !currentPiece) return;
+            if (!gameRunning || !gameStarted || !currentPiece) return;
             
             switch(e.key) {
                 case 'ArrowLeft':
@@ -720,7 +913,7 @@
         
         // 遊戲主循環
         function gameLoop(timestamp) {
-            if (!gameRunning) return;
+            if (!gameRunning || !gameStarted) return;
             
             // 如果正在閃爍，暫停遊戲邏輯
             if (!isFlashing && timestamp - dropTime > dropInterval) {
@@ -742,7 +935,7 @@
                         } else {
                             // 如果清除了行，等待閃爍效果結束後再生成新方塊
                             setTimeout(() => {
-                                if (gameRunning) {
+                                if (gameRunning && gameStarted) {
                                     currentPiece = getRandomPiece();
                                     
                                     if (isGameOver()) {
@@ -760,17 +953,27 @@
             }
             
             drawBoard();
-            if (!isFlashing) {
+            if (!isFlashing && currentPiece) {
                 drawPiece(currentPiece);
             }
             
-            requestAnimationFrame(gameLoop);
+            if (gameRunning && gameStarted) {
+                requestAnimationFrame(gameLoop);
+            }
         }
         
-        // 初始化遊戲
-        currentPiece = getRandomPiece();
+        // 初始化遊戲 - 只更新歷史記錄，不開始遊戲
         updateHistoryDisplay();
-        requestAnimationFrame(gameLoop);
+        
+        // 初始化畫布 - 顯示空的遊戲板
+        function initCanvas() {
+            drawBoard();
+        }
+        
+        // 頁面載入時初始化畫布
+        window.addEventListener('load', () => {
+            initCanvas();
+        });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95edb85a01548424',t:'MTc1MjQ2MTUwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'95ee0774c74ba9c1',t:'MTc1MjQ2NDc0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
